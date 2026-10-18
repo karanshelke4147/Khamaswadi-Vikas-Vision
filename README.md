@@ -10,8 +10,5 @@
 4. Open http://127.0.0.1:5000
 
 Admin: /admin/login
-Demo username: admin
-Demo password: khamaswadi123
 
-Change the admin credentials before any public deployment.
 This app is for public development issues and feedback. It does not include voter profiling or political preference tracking.
