@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="mr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#123b5d">
+<link rel="manifest" href="/manifest.json">
+<title>खामसवाडी विकास</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<nav class="nav">
+    <a href="/" class="brand">खामसवाडी विकास</a>
+    <div class="nav-links">
+        <a href="/" class="home">मुख्य पान</a>
+        {% if session.get('admin') %}
+            <a href="/admin" class="admin-btn">Dashboard</a>
+            <a href="/admin/logout" class="logout-btn">Logout</a>
+        {% else %}
+            <a href="/admin/login" class="admin-btn">Admin</a>
+        {% endif %}
+    </div>
+</nav>
+<main class="container">
+{% block content %}{% endblock %}
+</main>
+<script>
+if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('/sw.js').catch(()=>{});
+}
+</script>
+</body>
+</html>
