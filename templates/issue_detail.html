@@ -1,0 +1,35 @@
+{% extends "base.html" %}{% block content %}
+<div class="topline">
+  <div><a href="/admin" class="back">← Dashboard</a><h2>{{issue['issue_id']}} — समस्या तपशील</h2></div>
+  <div class="actions">
+    {% if issue['archived'] %}
+    <form method="post" action="/admin/issue/{{issue['id']}}/archive" class="inline-form"><button class="btn" type="submit">↩️ पुन्हा Active करा</button></form>
+    {% else %}
+    <form method="post" action="/admin/issue/{{issue['id']}}/archive" class="inline-form"><button class="btn secondary" type="submit">🗃️ Archive करा</button></form>
+    {% endif %}
+    <form method="post" action="/admin/issue/{{issue['id']}}/delete" class="inline-form" onsubmit="return confirm('ही नोंद कायमची Delete करायची आहे का? हा बदल Undo करता येणार नाही.');"><button class="btn danger" type="submit">🗑️ कायमची Delete</button></form>
+  </div>
+</div>
+{% if request.args.get('saved') %}<div class="success">Update यशस्वीपणे save झाला. ✅</div>{% endif %}
+{% if request.args.get('changed') %}<div class="success">नोंदीची स्थिती बदलली. ✅</div>{% endif %}
+
+{% if issue['archived'] %}<div class="warning">ही नोंद <b>Archived</b> आहे. ती active dashboard मध्ये दिसणार नाही.</div>{% endif %}
+
+<div class="grid detail-grid">
+<div class="card"><h3>समस्येची माहिती</h3>
+<p><b>वॉर्ड:</b> {{issue['ward']}}</p><p><b>प्रकार:</b> {{issue['category']}}</p><p><b>ठिकाण:</b> {{issue['location']}}</p><p><b>समस्या:</b> {{issue['description']}}</p><p><b>Priority:</b> {{issue['priority']}}</p><p><b>कालावधी:</b> {{issue['duration'] or '—'}}</p><p><b>नोंद:</b> {{issue['created_at']}}</p>
+{% if issue['photo_url'] %}<h4>समस्येचा फोटो</h4><img class="issue-photo" src="{{issue['photo_url']}}" alt="समस्येचा फोटो">{% endif %}
+</div>
+<div class="card"><h3>Update / कार्यवाही</h3>
+<form method="post" action="/admin/update/{{issue['id']}}">
+<label>स्थिती</label><select name="status">{% for s in statuses %}<option {% if issue['status']==s %}selected{% endif %}>{{s}}</option>{% endfor %}</select>
+<label>जबाबदार व्यक्ती</label><input name="assigned_person" value="{{issue['assigned_person'] or ''}}">
+<label>अपेक्षित पूर्ण तारीख</label><input type="date" name="expected_completion_date" value="{{issue['expected_completion_date'] or ''}}">
+<label>केलेली कार्यवाही</label><textarea name="action_taken">{{issue['action_taken'] or ''}}</textarea>
+<label>Public update</label><textarea name="public_update" placeholder="नागरिकांना दिसणारा update"></textarea>
+<label>Internal note</label><textarea name="internal_note" placeholder="फक्त admin साठी">{{issue['internal_note'] or ''}}</textarea>
+<button class="btn" type="submit">Update Save करा</button>
+</form></div>
+</div>
+<div class="card"><h3>Public Update History</h3>{% if updates %}{% for u in updates %}<div class="update"><b>{{u['update_date']}}</b><br>{{u['update_text']}}</div>{% endfor %}{% else %}<div class="note">अजून public update नाही.</div>{% endif %}</div>
+{% endblock %}

@@ -1,0 +1,76 @@
+{% extends "base.html" %}{% block content %}
+<div class="topline">
+  <div>
+    <h2>खामसवाडी विकास डॅशबोर्ड</h2>
+    <div class="note">सार्वजनिक समस्या आणि विकास अभिप्राय</div>
+  </div>
+  <div class="actions">
+    <a class="btn secondary" href="/admin/backup">💾 Backup</a>
+    <a class="btn secondary" href="/admin/export">📥 Excel / CSV</a>
+    {% if show_archived %}
+      <a class="btn" href="/admin">← Active</a>
+    {% else %}
+      <a class="btn secondary" href="/admin?archived=1">🗃️ Archived ({{archived_count}})</a>
+    {% endif %}
+  </div>
+</div>
+
+{% if request.args.get('deleted') %}
+<div class="success">नोंद कायमची delete झाली. ✅</div>
+{% endif %}
+
+<div class="grid kpi-grid">
+<div class="card"><div class="kpi">{{total}}</div><div>{% if show_archived %}Archived नोंदी{% else %}एकूण सक्रिय समस्या{% endif %}</div></div>
+<div class="card"><div class="kpi">{{open_count}}</div><div>प्रलंबित</div></div>
+<div class="card"><div class="kpi">{{resolved}}</div><div>पूर्ण</div></div>
+<div class="card"><div class="kpi">{{urgent}}</div><div>तातडीच्या</div></div>
+<div class="card"><div class="kpi">{{resolution_pct}}%</div><div>पूर्णता दर</div></div>
+</div>
+
+{% if not show_archived %}
+<div class="grid chart-grid">
+<div class="card"><h3>वॉर्डनुसार समस्या</h3>{% for w,n in ward_counts.items() %}<div class="barrow"><span>{{w}}</span><div class="bar"><i style="width:{{ (n / total * 100) if total else 0 }}%"></i></div><b>{{n}}</b></div>{% endfor %}</div>
+<div class="card"><h3>स्थितीनुसार</h3>{% for s,n in status_counts.items() %}<div class="barrow"><span>{{s}}</span><div class="bar"><i style="width:{{ (n / total * 100) if total else 0 }}%"></i></div><b>{{n}}</b></div>{% endfor %}</div>
+<div class="card"><h3>प्राधान्य</h3>{% for p,n in priority_counts.items() %}<div class="barrow"><span>{{p}}</span><div class="bar"><i style="width:{{ (n / total * 100) if total else 0 }}%"></i></div><b>{{n}}</b></div>{% endfor %}</div>
+</div>
+{% endif %}
+
+<div class="card table-card">
+<div class="table-head">
+  <div><h3>{% if show_archived %}संग्रहित नोंदी{% else %}समस्या यादी{% endif %}</h3><div class="note">Search आणि filters वापरा.</div></div>
+  <input id="search" oninput="filterRows()" placeholder="ID / ठिकाण / समस्या शोधा...">
+</div>
+<div class="filters">
+<select id="wardFilter" onchange="filterRows()"><option value="">सर्व वॉर्ड</option>{% for w in wards %}<option>{{w}}</option>{% endfor %}</select>
+<select id="statusFilter" onchange="filterRows()"><option value="">सर्व स्थिती</option>{% for s in statuses %}<option>{{s}}</option>{% endfor %}</select>
+<select id="priorityFilter" onchange="filterRows()"><option value="">सर्व Priority</option>{% for p in priorities %}<option>{{p}}</option>{% endfor %}</select>
+<select id="categoryFilter" onchange="filterRows()"><option value="">सर्व प्रकार</option>{% for c in categories %}<option>{{c}}</option>{% endfor %}</select>
+</div>
+<div class="table-wrap"><table id="issueTable"><thead><tr><th>ID</th><th>वॉर्ड</th><th>प्रकार</th><th>समस्या / ठिकाण</th><th>Priority</th><th>स्थिती</th><th>Action</th></tr></thead><tbody>
+{% for r in rows %}
+<tr class="issue-row" data-ward="{{r['ward']}}" data-status="{{r['status']}}" data-priority="{{r['priority']}}" data-category="{{r['category']}}" data-search="{{r['issue_id']}} {{r['category']}} {{r['location']}} {{r['description']}}">
+<td><b>{{r['issue_id']}}</b><br><span class="small">{{r['created_at']}}</span></td>
+<td>{{r['ward']}}</td><td>{{r['category']}}</td><td>{{r['description']}}<br><span class="small">{{r['location']}}</span></td>
+<td>{{r['priority']}}</td><td><span class="status-pill">{{r['status']}}</span></td>
+<td><a class="btn small-btn" href="/admin/issue/{{r['id']}}">पहा / Update</a></td>
+</tr>
+{% else %}
+<tr><td colspan="7" class="empty">या विभागात सध्या कोणतीही नोंद नाही.</td></tr>
+{% endfor %}
+</tbody></table></div>
+<div id="noResults" class="empty" style="display:none">या filter साठी कोणतीही नोंद नाही.</div>
+</div>
+<script>
+function filterRows(){
+ const q=document.getElementById('search').value.toLowerCase(),
+ w=document.getElementById('wardFilter').value,s=document.getElementById('statusFilter').value,
+ p=document.getElementById('priorityFilter').value,c=document.getElementById('categoryFilter').value;
+ let shown=0;
+ document.querySelectorAll('.issue-row').forEach(r=>{
+  const ok=(!q||r.dataset.search.toLowerCase().includes(q))&&(!w||r.dataset.ward===w)&&(!s||r.dataset.status===s)&&(!p||r.dataset.priority===p)&&(!c||r.dataset.category===c);
+  r.style.display=ok?'':'none'; if(ok)shown++;
+ });
+ document.getElementById('noResults').style.display=shown?'none':'block';
+}
+</script>
+{% endblock %}
